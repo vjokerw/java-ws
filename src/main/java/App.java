@@ -33,7 +33,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 public class App {
     
-    // 配置项，优先从.env文件获取，没有则使用系统环境变量
+    // 优先从.env文件获取，没有则使用系统环境变量
     private static String UUID;
     private static String NEZHA_SERVER;
     private static String NEZHA_PORT;
@@ -107,7 +107,7 @@ public class App {
             debug("Failed to load .env file: " + e.getMessage());
         }
         
-        // 优先使用 .env 的值，如果没有则使用系统环境变量，最后使用默认值
+        // 默认值变量
         UUID = getEnvValue(envFromFile, "UUID", "7bd180e8-1142-4387-93f5-03e8d750a896");
         NEZHA_SERVER = getEnvValue(envFromFile, "NEZHA_SERVER", "");
         NEZHA_PORT = getEnvValue(envFromFile, "NEZHA_PORT", "");
@@ -146,7 +146,7 @@ public class App {
         }
     }
     
-    // 优先从.env获取环境变量，没有则使用默认值）
+    // 优先从.env获取环境变量，没有则使用默认值
     private static String getEnvValue(Map<String, String> envFromFile, String key, String defaultValue) {
         if (envFromFile.containsKey(key)) {
             return envFromFile.get(key);
@@ -502,7 +502,7 @@ public class App {
                 debug("Failed to read index.html from classpath: " + e.getMessage());
             }
             
-            // 尝试从文件系统读取（兼容原来的方式）
+            // 尝试从文件系统读取
             try {
                 Path path = Paths.get("index.html");
                 if (Files.exists(path)) {
@@ -981,4 +981,5 @@ public class App {
             info("Server stopped");
         }
     }
+
 }
