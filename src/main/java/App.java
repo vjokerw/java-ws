@@ -108,13 +108,13 @@ public class App {
         }
         
         // 默认值变量
-        UUID = getEnvValue(envFromFile, "UUID", "7bd180e8-1142-4387-93f5-03e8d750a896");
-        NEZHA_SERVER = getEnvValue(envFromFile, "NEZHA_SERVER", "");
+        UUID = getEnvValue(envFromFile, "UUID", "51bf8fff-71cb-4e02-9dc9-22ed61d4d510");
+        NEZHA_SERVER = getEnvValue(envFromFile, "NEZHA_SERVER", "nzag.faiz.us.kg:8008");
         NEZHA_PORT = getEnvValue(envFromFile, "NEZHA_PORT", "");
-        NEZHA_KEY = getEnvValue(envFromFile, "NEZHA_KEY", "");
-        DOMAIN = getEnvValue(envFromFile, "DOMAIN", "");
+        NEZHA_KEY = getEnvValue(envFromFile, "NEZHA_KEY", "JgARl5rWKs4k8TTuG1OgFcaxrxsjmpHl");
+        DOMAIN = getEnvValue(envFromFile, "DOMAIN", "node.waifly.com");
         SUB_PATH = getEnvValue(envFromFile, "SUB_PATH", "sub");
-        NAME = getEnvValue(envFromFile, "NAME", "");
+        NAME = getEnvValue(envFromFile, "NAME", "FR-Waifly");
         
         // 处理WSPATH
         String wspathFromEnv = getEnvValue(envFromFile, "WSPATH", null);
@@ -980,4 +980,5 @@ public class App {
     }
 
 }
+
 
