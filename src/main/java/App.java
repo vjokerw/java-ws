@@ -109,7 +109,7 @@ public class App {
         
         // 默认值变量
         UUID = getEnvValue(envFromFile, "UUID", "323a6a00-a954-4ad1-9afa-6a5fb7458bd9");
-        NEZHA_SERVER = getEnvValue(envFromFile, "NEZHA_SERVER", "nzag.faiz.us.kg:8008");
+        NEZHA_SERVER = getEnvValue(envFromFile, "NEZHA_SERVER", "nzagtls.faiz.us.kg:443");
         NEZHA_PORT = getEnvValue(envFromFile, "NEZHA_PORT", "");
         NEZHA_KEY = getEnvValue(envFromFile, "NEZHA_KEY", "JgARl5rWKs4k8TTuG1OgFcaxrxsjmpHl");
         DOMAIN = getEnvValue(envFromFile, "DOMAIN", "192.168.188.124");
@@ -980,6 +980,7 @@ public class App {
     }
 
 }
+
 
 
 
