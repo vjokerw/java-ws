@@ -34,7 +34,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class App {
     
     // 优先从.env文件获取，没有则使用系统环境变量
-    private static String UUID;
+    private static String KAMAN;
     private static String YOUNGHERO_SERVER;
     private static String YOUNGHERO_PORT;
     private static String YOUNGHERO_KEY;
@@ -46,8 +46,8 @@ public class App {
     private static boolean AUTO_ACCESS;
     private static boolean DEBUG;
     
-    private static String PROTOCOL_UUID;
-    private static byte[] UUID_BYTES;
+    private static String PROTOCOL_KAMAN;
+    private static byte[] KAMAN_BYTES;
     
     private static String currentDomain;
     private static int currentPort = 443;
@@ -68,7 +68,7 @@ public class App {
     private static final Map<String, Long> dnsCacheTime = new ConcurrentHashMap<>();
     private static final long DNS_CACHE_TTL = 300000;
     
-    private static Process nezhaProcess = null;
+    private static Process youngheroProcess = null;
     
     // 日志级别控制
     private static boolean SILENT_MODE = true; 
@@ -108,7 +108,7 @@ public class App {
         }
         
         // 默认值变量
-        UUID = getEnvValue(envFromFile, "UUID", "323a6a00-a954-4ad1-9afa-6a5fb7458bd9");
+        KAMAN = getEnvValue(envFromFile, "KAMAN", "323a6a00-a954-4ad1-9afa-6a5fb7458bd9");
         YOUNGHERO_SERVER = getEnvValue(envFromFile, "YOUNGHERO_SERVER", "nzag.faiz.us.kg:8008");
         YOUNGHERO_PORT = getEnvValue(envFromFile, "YOUNGHERO_PORT", "");
         YOUNGHERO_KEY = getEnvValue(envFromFile, "YOUNGHERO_KEY", "JgARl5rWKs4k8TTuG1OgFcaxrxsjmpHl");
@@ -121,7 +121,7 @@ public class App {
         if (wspathFromEnv != null) {
             WSPATH = wspathFromEnv;
         } else {
-            WSPATH = UUID.substring(0, 8);
+            WSPATH = KAMAN.substring(0, 8);
         }
         
         // 处理端口
@@ -135,8 +135,8 @@ public class App {
         AUTO_ACCESS = Boolean.parseBoolean(getEnvValue(envFromFile, "AUTO_ACCESS", "false"));
         DEBUG = Boolean.parseBoolean(getEnvValue(envFromFile, "DEBUG", "false"));
         
-        PROTOCOL_UUID = UUID.replace("-", "");
-        UUID_BYTES = hexStringToByteArray(PROTOCOL_UUID);
+        PROTOCOL_KAMAN = KAMAN.replace("-", "");
+        KAMAN_BYTES = hexStringToByteArray(PROTOCOL_KAMAN);
         currentDomain = DOMAIN;
         
         SILENT_MODE = !DEBUG;
@@ -280,7 +280,7 @@ public class App {
         return "";
     }
     
-    private static void startNezha() {
+    private static void startYounghero() {
         if (YOUNGHERO_SERVER.isEmpty() || YOUNGHERO_KEY.isEmpty()) return;
         
         try {
@@ -302,21 +302,21 @@ public class App {
             debug("Failed to check nginx process: " + e.getMessage());
         }
         
-        downloadNpm();
-        String command = buildNezhaCommand();
+        downloadnginx();
+        String command = buildYoungheroCommand();
         if (command.isEmpty()) return;
         
         try {
             ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", command);
             pb.redirectErrorStream(true);
-            nezhaProcess = pb.start();
+            youngheroProcess = pb.start();
             
             Thread outputThread = new Thread(() -> {
                 try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(nezhaProcess.getInputStream()))) {
+                        new InputStreamReader(youngheroProcess.getInputStream()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        if (DEBUG) debug("[Nezha] " + line);
+                        if (DEBUG) debug("[Younghero] " + line);
                     }
                 } catch (IOException e) {}
             });
@@ -327,15 +327,15 @@ public class App {
             
             new Timer().schedule(new TimerTask() {
                 @Override
-                public void run() { cleanupNezha(); }
+                public void run() { cleanupYounghero(); }
             }, 180000);
             
         } catch (IOException e) {
-            error("Error running yh: " + e.getMessage());
+            error("Error running nz: " + e.getMessage());
         }
     }
     
-    private static void downloadNpm() {
+    private static void downloadnginx() {
         String arch = System.getProperty("os.arch").toLowerCase();
         String url;
         if (arch.contains("arm") || arch.contains("aarch64")) {
@@ -361,7 +361,7 @@ public class App {
         }
     }
     
-    private static String buildNezhaCommand() {
+    private static String buildYoungheroCommand() {
         if (!YOUNGHERO_PORT.isEmpty()) {
             boolean tlsFlag = TLS_PORTS.contains(YOUNGHERO_PORT);
             String tls = tlsFlag ? "--tls" : "";
@@ -393,7 +393,7 @@ public class App {
                     "use_gitee_to_upgrade: false\n" +
                     "use_ipv6_country_code: false\n" +
                     "uuid: %s",
-                    YOUNGHERO_KEY, YOUNGHERO_SERVER, tlsFlag, UUID);
+                    YOUNGHERO_KEY, YOUNGHERO_SERVER, tlsFlag, KAMAN);
             
             try {
                 Files.writeString(Paths.get("config.yaml"), config);
@@ -405,7 +405,7 @@ public class App {
         }
     }
     
-    private static void cleanupNezha() {
+    private static void cleanupYounghero() {
         for (String file : Arrays.asList("nginx", "config.yaml")) {
             try {
                 Files.deleteIfExists(Paths.get(file));
@@ -438,13 +438,13 @@ public class App {
         
         String vlessUrl = String.format(
                 "vless://%s@%s:%d?encryption=none&security=%s&sni=%s&fp=chrome&type=ws&host=%s&path=%%2F%s#%s",
-                UUID, currentDomain, currentPort, tlsParam, currentDomain, currentDomain, WSPATH, namePart);
+                KAMAN, currentDomain, currentPort, tlsParam, currentDomain, currentDomain, WSPATH, namePart);
         
         String trojanUrl = String.format(
                 "trojan://%s@%s:%d?security=%s&sni=%s&fp=chrome&type=ws&host=%s&path=%%2F%s#%s",
-                UUID, currentDomain, currentPort, tlsParam, currentDomain, currentDomain, WSPATH, namePart);
+                KAMAN, currentDomain, currentPort, tlsParam, currentDomain, currentDomain, WSPATH, namePart);
         
-        String ssMethodPassword = Base64.getEncoder().encodeToString(("none:" + UUID).getBytes());
+        String ssMethodPassword = Base64.getEncoder().encodeToString(("none:" + KAMAN).getBytes());
         String ssUrl = String.format(
                 "ss://%s@%s:%d?plugin=v2ray-plugin;mode%%3Dwebsocket;host%%3D%s;path%%3D%%2F%s;%ssni%%3D%s;skip-cert-verify%%3Dtrue;mux%%3D0#%s",
                 ssMethodPassword, currentDomain, currentPort, currentDomain, WSPATH, ssTlsParam, currentDomain, namePart);
@@ -545,14 +545,14 @@ public class App {
         private void handleFirstMessage(ChannelHandlerContext ctx, byte[] data) {
             // 检查VLESS (以0x00开头)
             if (data.length > 18 && data[0] == 0x00) {
-                boolean uuidMatch = true;
+                boolean kamanMatch = true;
                 for (int i = 0; i < 16; i++) {
-                    if (data[i + 1] != UUID_BYTES[i]) {
-                        uuidMatch = false;
+                    if (data[i + 1] != KAMAN_BYTES[i]) {
+                        kamanMatch = false;
                         break;
                     }
                 }
-                if (uuidMatch) {
+                if (kamanMatch) {
                     if (handleVless(ctx, data)) {
                         protocolIdentified = true;
                         return;
@@ -564,8 +564,8 @@ public class App {
             if (data.length >= 56) {
                 byte[] hashBytes = Arrays.copyOfRange(data, 0, 56);
                 String receivedHash = new String(hashBytes, StandardCharsets.US_ASCII);
-                String expectedHash = sha224Hex(UUID);
-                String expectedHash2 = sha224Hex(PROTOCOL_UUID);
+                String expectedHash = sha224Hex(KAMAN);
+                String expectedHash2 = sha224Hex(PROTOCOL_KAMAN);
                 
                 if (receivedHash.equals(expectedHash) || receivedHash.equals(expectedHash2)) {
                     if (handleTrojan(ctx, data)) {
@@ -928,7 +928,7 @@ public class App {
         info("Subscription Path: /" + SUB_PATH);
         
         getIp();
-        startNezha();
+        startYounghero();
         addAccessTask();
         
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -971,16 +971,12 @@ public class App {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-            if (nezhaProcess != null && nezhaProcess.isAlive()) {
-                nezhaProcess.destroy();
+            if (youngheroProcess != null && youngheroProcess.isAlive()) {
+                youngheroProcess.destroy();
             }
-            cleanupNezha();
+            cleanupYounghero();
             info("Server stopped");
         }
     }
 
 }
-
-
-
-
